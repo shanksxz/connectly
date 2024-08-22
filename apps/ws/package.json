@@ -1,0 +1,17 @@
+{
+    "name": "ws",
+    "version": "1.0.0",
+    "scripts": {
+        "dev": "ts-node src/index.ts"
+    },
+    "devDependencies": {
+        "@repo/db": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
+        "@types/node": "^22.5.0",
+        "drizzle-kit": "^0.24.1"
+    },
+    "dependencies": {
+        "dotenv": "^16.4.5",
+        "ws": "^8.18.0"
+    }
+}
