@@ -29,13 +29,17 @@ export interface Message {
     messageId: string;
     roomId: string;
     sentAt: Date;
+    userName: string;
 }
 
 export interface RoomInfo {
     roomName: string;
     createdBy: string;
     createdAt: Date;
-    users: string[];
+    users: {
+        userId: string;
+        userName: string;
+    }[]
 }
 
 export type signUpSchemaType = z.infer<typeof signUpSchema>;

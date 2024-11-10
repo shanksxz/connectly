@@ -28,7 +28,6 @@ export async function check({ roomId, userId }: foo) {
 export async function getMessages({ roomId, userId }: foo) {
   try {
     // is user in the room?
-    console.log("dhvbdvjdv", roomId, userId);
     const inRoom = await check({ roomId, userId });
 
     if (!inRoom) {

@@ -27,39 +27,46 @@ export async function check({ roomId, userId }: foo) {
   }
 }
 
-export async function createRoom({ roomName, userId }: { roomName: string; userId: string }) {
-    try {
-        // check if room already exists
-        const isRoomExists = await db
-        .select()
-        .from(rooms)
-        .where(eq(rooms.roomName, roomName));
+export async function createRoom({
+  roomName,
+  userId,
+}: {
+  roomName: string;
+  userId: string;
+}) {
+  try {
+    // check if room already exists
+    const isRoomExists = await db
+      .select()
+      .from(rooms)
+      .where(eq(rooms.roomName, roomName));
 
-        if (isRoomExists.length > 0) {
-        return { status: 409, message: "Room already exists" };
-        }
-
-        // create a new room
-        const foo = await db
-        .insert(rooms)
-        .values({
-            roomName,
-            createdBy: parseInt(userId),
-        }).returning();
-    
-        // add user to the room
-        await db
-        .insert(userRooms)
-        .values({
-            userId: parseInt(userId),
-            roomId: foo[0].roomId,
-        })
-        .returning();
-    
-        return { status: 200, roomId: foo[0].roomId };
-    } catch (error) {
-        return { status: 500, message: "Internal server error" };
+    if (isRoomExists.length > 0) {
+      return { status: 409, message: "Room already exists" };
     }
+
+    // create a new room
+    const foo = await db
+      .insert(rooms)
+      .values({
+        roomName,
+        createdBy: parseInt(userId),
+      })
+      .returning();
+
+    // add user to the room
+    await db
+      .insert(userRooms)
+      .values({
+        userId: parseInt(userId),
+        roomId: foo[0].roomId,
+      })
+      .returning();
+
+    return { status: 200, roomId: foo[0].roomId };
+  } catch (error) {
+    return { status: 500, message: "Internal server error" };
+  }
 }
 
 export async function joinRoom({ roomId, userId }: foo) {
@@ -107,9 +114,18 @@ export async function getMessages({ roomId, userId }: foo) {
     }
 
     const foo = await db
-      .select()
+      .select({
+        messageId: messages.messageId,
+        userId: messages.userId,
+        roomId: messages.roomId,
+        content: messages.content,
+        sentAt: messages.sentAt,
+        userName: users.username,
+      })
       .from(messages)
-      .where(eq(messages.roomId, parseInt(roomId)));
+      .innerJoin(users, eq(messages.userId, users.userId))
+      .where(eq(messages.roomId, parseInt(roomId)))
+      .orderBy(messages.sentAt);
 
     const boo = foo.map((message) => {
       return {
@@ -118,6 +134,7 @@ export async function getMessages({ roomId, userId }: foo) {
         roomId: message.roomId.toString(),
         content: message.content,
         sentAt: message.sentAt,
+        userName: message.userName,
       };
     });
 
@@ -142,9 +159,13 @@ export async function getRoomInfo({ roomId }: { roomId: string }) {
       .from(rooms)
       .where(eq(rooms.roomId, parseInt(roomId)));
 
-    const users = await db
-      .select()
+    const user_info = await db
+      .select({
+        userId: users.userId,
+        userName: users.username,
+      })
       .from(userRooms)
+      .innerJoin(users, eq(userRooms.userId, users.userId))
       .where(eq(userRooms.roomId, parseInt(roomId)));
 
     const bar = foo.map((room) => {
@@ -152,7 +173,10 @@ export async function getRoomInfo({ roomId }: { roomId: string }) {
         roomName: room.roomName,
         createdBy: room.createdBy.toLocaleString(),
         createdAt: room.createdAt,
-        users: users.map((user) => user.userId.toLocaleString()),
+        users: user_info.map((user) => ({
+          userId: user.userId.toLocaleString(),
+          userName: user.userName,
+        })),
       };
     });
 
@@ -162,11 +186,7 @@ export async function getRoomInfo({ roomId }: { roomId: string }) {
   }
 }
 
-export async function getUsersRoom({
-  userId,
-}: {
-  userId: string;
-}) {
+export async function getUsersRoom({ userId }: { userId: string }) {
   try {
     const foo = await db
       .select({
@@ -178,7 +198,12 @@ export async function getUsersRoom({
       })
       .from(rooms)
       .innerJoin(userRooms, eq(rooms.roomId, userRooms.roomId))
-      .where(and(eq(rooms.createdBy, userRooms.userId), eq(userRooms.userId, parseInt(userId))));
+      .where(
+        and(
+          eq(rooms.createdBy, userRooms.userId),
+          eq(userRooms.userId, parseInt(userId))
+        )
+      );
 
     if (foo.length === 0) {
       return { status: 404, message: "Room not found" };
@@ -191,7 +216,6 @@ export async function getUsersRoom({
     return { status: 500, message: "Internal server error" };
   }
 }
-
 
 export async function getUsersAllRooms({ userId }: { userId: string }) {
   // get user's room including the rooms created by the user and the rooms the user is in
@@ -206,7 +230,7 @@ export async function getUsersAllRooms({ userId }: { userId: string }) {
       })
       .from(rooms)
       .innerJoin(userRooms, eq(rooms.roomId, userRooms.roomId))
-      .where(eq(userRooms.userId, parseInt(userId)))
+      .where(eq(userRooms.userId, parseInt(userId)));
 
     if (foo.length === 0) {
       return { status: 404, message: "Room not found" };
