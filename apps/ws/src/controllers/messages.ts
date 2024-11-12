@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { z } from "zod";
-import { and, db, eq, messages, userRooms } from "@repo/database";
+import { and, db, eq, messages, userRooms, users } from "@repo/database";
 import { getUsersInRoom, io } from "../socket";
 
 const messageSchema = z.object({
@@ -8,10 +8,17 @@ const messageSchema = z.object({
   content: z.string(),
 });
 
+async function getUserName(userId: string) {
+  const foo = await db
+    .select()
+    .from(users)
+    .where(eq(users.userId, parseInt(userId)));
+
+  return foo[0].username;
+}
+
 export async function sendMessage(req: Request, res: Response) {
   try {
-    console.log("sendMessage");
-    console.log("req.body", req.body);
     // get roomId and text from request body
     const { roomId, content } = messageSchema.parse(req.body);
 
@@ -49,6 +56,8 @@ export async function sendMessage(req: Request, res: Response) {
 
     // send message to all users in the room
     const socketIds = await getUsersInRoom(roomId);
+    const senderUsername = await getUserName(senderId);
+    console.log(senderUsername);
     socketIds.forEach((socketId) => {
       io.to(socketId).emit("message", {
         roomId,
@@ -56,6 +65,7 @@ export async function sendMessage(req: Request, res: Response) {
         content,
         sentAt: foo[0].sentAt,
         messageId: foo[0].messageId,
+        userName: senderUsername
       });
     });
 
