@@ -56,7 +56,6 @@ export const {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, request): Promise<any | null> {
-        console.log("Credentials are:", credentials ?? "No credentials");
         if (!credentials?.email || !credentials?.password) {
           console.error("Credentials are missing");
           return null;
@@ -65,14 +64,10 @@ export const {
         try {
           const { email, password } = signInSchema.parse(credentials);
 
-          console.log("Email and password are:", email + " " + password);
-
           const user = await db
             .select()
             .from(users)
             .where(eq(users.email, email));
-
-          console.log("User is:", user);
 
           if (!user || user.length === 0) return null;
 
@@ -81,11 +76,9 @@ export const {
             user[0].password
           );
 
-          console.log("Is password valid:", isPasswordValid);
-
-          if (!isPasswordValid){
+          if (!isPasswordValid) {
             console.error("Password is invalid");
-          };
+          }
           console.log(user[0]);
 
           return {
@@ -101,7 +94,7 @@ export const {
     }),
   ],
   pages: {
-    // signIn: "/auth/signin",
+    signIn: "/signin",
   },
   callbacks: {
     async jwt({ token, user }) {
