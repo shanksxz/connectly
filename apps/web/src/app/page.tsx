@@ -11,7 +11,7 @@ export default async function Page() {
     const session = await auth();
 
     if (!session?.user?.email) {
-        redirect("/auth/signin");
+        redirect("/signin");
     }
 
     const gg = await getUsersAllRooms({ userId: session.user.userId });
