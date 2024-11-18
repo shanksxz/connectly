@@ -26,7 +26,7 @@ export default async function Page({ params }: {
     }
 
     return (
-        <section className="p-5 h-dvh w-dvw">
+        <section className="md:p-5 h-dvh w-dvw">
             <ChatLayout
                 initialMessages={initialMessages.messages}
                 roomId={roomId}

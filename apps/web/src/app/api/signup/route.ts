@@ -9,12 +9,25 @@ export async function POST(req: Request) {
     const { email, username, password } = signUpSchema.parse(await req.json());
 
     // check if user already exists
-    const user = await db.select().from(users).where(eq(users.email, email));
+    const isUser = await db.select().from(users).where(eq(users.email, email));
 
-    if (user.length > 0) {
+    // check if username already exists
+    const isUserNameExists = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
+
+    if (isUserNameExists.length > 0) {
+      return NextResponse.json(
+        { error: "Username already exists" },
+        { status: 400 },
+      );
+    }
+
+    if (isUser.length > 0) {
       return NextResponse.json(
         { error: "User already exists" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -28,14 +41,17 @@ export async function POST(req: Request) {
       password: hashedPassword,
     });
 
-    return NextResponse.json({ message: "Account created successfully", status: 200 });
+    return NextResponse.json({
+      message: "Account created successfully",
+      status: 200,
+    });
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json({ error: error.errors }, { status: 400 });
     } else {
       return NextResponse.json(
         { error: "Failed to create account" },
-        { status: 500 }
+        { status: 500 },
       );
     }
   }

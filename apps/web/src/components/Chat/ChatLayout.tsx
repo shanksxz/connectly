@@ -6,7 +6,7 @@ import { ScrollArea } from "@repo/ui/components/ui/scroll-area"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@repo/ui/components/ui/card"
 import { Button } from "@repo/ui/components/ui/button"
 import { Input } from "@repo/ui/components/ui/input"
-import { ArrowLeft, Send, Undo2, Users } from "lucide-react"
+import { ArrowLeft, Send, Users } from "lucide-react"
 import useListenMessages from '@/hooks/useListenMessages'
 import { Message, RoomInfo } from '@/types'
 import ChatMessage from './ChatMessages'
@@ -48,7 +48,7 @@ export default function ChatLayout({ roomId, initialMessages = [], roomInfo, use
     }, [messages])
 
     return (
-        <Card className="w-full h-full max-w-lg mx-auto flex flex-col">
+        <Card className="w-full rouded-lg h-full max-w-sm mx-auto flex flex-col">
             <CardHeader className="border-b">
                 <div className="flex items-center justify-between">
                     <div className='flex items-center gap-2'>
