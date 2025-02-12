@@ -1,4 +1,4 @@
-import { Message } from "@/types";
+import { Message } from "@repo/types";
 import { Avatar, AvatarFallback } from "@repo/ui/components/ui/avatar";
 
 export default function ChatMessage({ message, isUser, userName }: { message: Message; isUser: boolean, userName: string }) {

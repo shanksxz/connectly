@@ -6,44 +6,65 @@ import { Input } from "@repo/ui/components/ui/input";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createRoom, joinRoom } from "@/actions/rooms";
 import { toast } from "sonner";
+import { createRoom, joinRoom } from "@/actions/rooms";
+import { useSession } from "next-auth/react";
 
-const RoomOperation = ({ type, userId }: { type: "Create" | "Join", userId: string }) => {
+export function RoomOperations({ type }: { type: "Create" | "Join" }) {
     const [isOpen, setIsOpen] = useState(false);
     const [roomId, setRoomId] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const { data: session } = useSession();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isLoading) return;
 
+        setIsLoading(true);
         try {
             if (type === 'Create') {
-                await createRoom({ roomName: roomId, userId });
-                toast.success('Room created successfully');
-            } else {
-                console.log(roomId, userId);
-                const res = await joinRoom({ roomId, userId });
-                if(res.status !== 200) {
-                    toast.error(res.message);
-                    return;
+                const response = await createRoom({ 
+                    roomName: roomId, 
+                    userId: session?.user.userId as string 
+                });
+                
+                if (response.status === 200) {
+                    toast.success('Room created successfully');
+                    router.refresh();
+                    setIsOpen(false);
+                    setRoomId('');
+                    router.push(`/room/${response.roomId}`);
                 } else {
-                    toast.success(res.message);
+                    toast.error(response.message || 'Failed to create room');
+                }
+            } else {
+                const response = await joinRoom({ 
+                    roomId, 
+                    userId: session?.user.userId as string 
+                });
+                
+                if (response.status === 200) {
+                    toast.success('Joined room successfully');
+                    router.refresh();
+                    setIsOpen(false);
+                    setRoomId('');
+                    router.push(`/room/${roomId}`);
+                } else {
+                    toast.error(response.message || 'Failed to join room');
                 }
             }
-
-            setIsOpen(false);
-            setRoomId('');
-            router.refresh();
         } catch (error) {
-            toast.error('Failed to ' + type.toLowerCase() + ' room');
+            toast.error(`Failed to ${type.toLowerCase()} room`);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button
+                <Button 
                     className="w-full"
                     variant={type === "Create" ? "default" : "secondary"}
                 >
@@ -60,23 +81,24 @@ const RoomOperation = ({ type, userId }: { type: "Create" | "Join", userId: stri
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
-                            <label htmlFor="roomName">Room Name</label>
+                            <label htmlFor="roomName">
+                                {type === 'Create' ? 'Room Name' : 'Room ID'}
+                            </label>
                             <Input
                                 id="roomName"
                                 name="roomName"
                                 required
                                 value={roomId}
                                 onChange={(e) => setRoomId(e.target.value)}
+                                disabled={isLoading}
                             />
                         </div>
-                        <Button type="submit">
-                            {type} Room
+                        <Button type="submit" disabled={isLoading}>
+                            {isLoading ? 'Loading...' : `${type} Room`}
                         </Button>
                     </div>
                 </form>
             </DialogContent>
         </Dialog>
     );
-};
-
-export default RoomOperation;
+}

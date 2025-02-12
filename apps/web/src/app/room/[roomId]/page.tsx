@@ -1,5 +1,5 @@
 import { getMessages, getRoomInfo } from "@/actions/rooms";
-import ChatLayout from "@/components/Chat/ChatLayout";
+import ChatLayout from "@/features/chat/components/chat-layout";
 import { auth } from "@/server/auth"
 import { redirect } from "next/navigation";
 
@@ -26,13 +26,9 @@ export default async function Page({ params }: {
     }
 
     return (
-        <section className="md:p-5 h-dvh w-dvw">
-            <ChatLayout
-                initialMessages={initialMessages.messages}
-                roomId={roomId}
-                roomInfo={roomInfo.roomInfo}
-                userId={session.user.userId}
-            />
-        </section>
+        <ChatLayout
+            initialMessages={initialMessages.messages}
+            roomInfo={{ ...roomInfo.roomInfo, roomId }}
+        />
     )
 }

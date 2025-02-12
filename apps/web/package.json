@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix"
+    "dev": "pnpm with-env next dev --turbopack",
+    "build": "pnpm with-env next build",
+    "start": "pnpm with-env next start",
+    "format-and-lint": "biome check ./src",
+    "format-and-lint:fix": "biome check --write ./src",
+    "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -22,9 +23,12 @@
     "react-hook-form": "^7.53.1",
     "socket.io-client": "^4.8.1",
     "sonner": "^1.5.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "zustand": "^5.0.3",
+    "@repo/types": "workspace:*"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@repo/database": "workspace:*",
     "@repo/ui": "workspace:*",
     "@types/bcrypt": "^5.0.2",

@@ -84,11 +84,10 @@ export async function joinRoom({ roomId, userId }: foo) {
     // check if user is already in the room
     const inRoom = await check({ roomId, userId });
     if (inRoom) {
-      // already in the room
       return { status: 200, message: "Already in the room" };
     }
 
-    // add user to the room
+    // add user to the room (DB only)
     await db
       .insert(userRooms)
       .values({
@@ -97,7 +96,11 @@ export async function joinRoom({ roomId, userId }: foo) {
       })
       .returning();
 
-    return { status: 200, message: "User added to the room" };
+    return { 
+      status: 200, 
+      message: "User added to the room",
+      roomInfo: isRoomExists[0]
+    };
   } catch (error) {
     return { status: 500, message: "Internal server error" };
   }
@@ -218,7 +221,6 @@ export async function getUsersRoom({ userId }: { userId: string }) {
 }
 
 export async function getUsersAllRooms({ userId }: { userId: string }) {
-  // get user's room including the rooms created by the user and the rooms the user is in
   try {
     const foo = await db
       .select({
@@ -237,6 +239,50 @@ export async function getUsersAllRooms({ userId }: { userId: string }) {
     }
     console.log("kk", foo);
     return { status: 200, roomInfo: foo };
+  } catch (error) {
+    return { status: 500, message: "Internal server error" };
+  }
+}
+
+export async function leaveRoom({ roomId, userId }: foo) {
+  try {
+    const inRoom = await check({ roomId, userId });
+    if (!inRoom) {
+      return { status: 404, message: "Not in room" };
+    }
+
+    await db
+      .delete(userRooms)
+      .where(
+        and(
+          eq(userRooms.userId, parseInt(userId)),
+          eq(userRooms.roomId, parseInt(roomId))
+        )
+      );
+
+    return { status: 200, message: "Left room successfully" };
+  } catch (error) {
+    return { status: 500, message: "Internal server error" };
+  }
+}
+
+export async function verifyRoomAccess({ roomId, userId }: foo) {
+  try {
+    const inRoom = await check({ roomId, userId });
+    if (!inRoom) {
+      return { status: 403, message: "Not a member of this room" };
+    }
+
+    const gg = await db
+      .select()
+      .from(rooms)
+      .where(eq(rooms.roomId, parseInt(roomId)));
+
+    if (gg.length === 0) {
+      return { status: 404, message: "Room not found" };
+    }
+
+    return { status: 200, roomInfo: gg[0] };
   } catch (error) {
     return { status: 500, message: "Internal server error" };
   }

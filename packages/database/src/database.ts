@@ -1,17 +1,7 @@
-import "dotenv/config";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import * as schema from "./schema";
+import { getEnvVar } from "./utils";
 
-const getEnvVar = (name: string): string => {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing environment variable: ${name}`);
-  }
-  return value;
-};
-
-const pool = new Pool({
-  connectionString: getEnvVar("DATABASE_URL"),
-});
-
-export const db = drizzle(pool);
+export const client = postgres(getEnvVar("DATABASE_URL"));
+export const db = drizzle(client, { schema, logger: true });
