@@ -20,6 +20,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@repo/database": "workspace:*",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",

@@ -22,6 +22,7 @@
     "postgres": "^3.4.5"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@repo/typescript-config": "workspace:*",
     "@types/bcrypt": "^5.0.2",
     "@types/pg": "^8.11.10",

@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
-import bcrypt from "bcrypt";
-import { db, eq, users } from "@repo/database";
 import { signUpSchema } from "@/types";
+import { db, eq, users } from "@repo/database";
+import bcrypt from "bcrypt";
+import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
 export async function POST(req: Request) {
@@ -48,12 +48,11 @@ export async function POST(req: Request) {
 	} catch (error) {
 		if (error instanceof ZodError) {
 			return NextResponse.json({ error: error.errors }, { status: 400 });
-		} else {
-			console.log(error);
-			return NextResponse.json(
-				{ error: "Failed to create account" },
-				{ status: 500 },
-			);
 		}
+		console.log(error);
+		return NextResponse.json(
+			{ error: "Failed to create account" },
+			{ status: 500 },
+		);
 	}
 }

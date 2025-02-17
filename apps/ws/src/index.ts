@@ -1,8 +1,8 @@
-import { server, app } from "./socket";
-import express from "express";
-import { getEnvVariable } from "./utils";
-import morgan from "morgan";
 import cors from "cors";
+import express from "express";
+import morgan from "morgan";
+import { app, server } from "./socket";
+import { getEnvVariable } from "./utils";
 
 app.use(morgan("dev"));
 app.use(

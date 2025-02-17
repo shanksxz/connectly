@@ -8,10 +8,12 @@
     "format-and-lint:fix": "turbo format-and-lint:fix --continue --",
     "db:migrate": "turbo db:migrate",
     "db:studio": "turbo db:studio",
-    "db:generate": "turbo db:generate"
+    "db:generate": "turbo db:generate",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
+    "husky": "^9.1.7",
     "turbo": "^2.2.3",
     "typescript": "5.5.4"
   },

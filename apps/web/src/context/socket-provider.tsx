@@ -1,8 +1,8 @@
 "use client";
 
-import { io, Socket } from "socket.io-client";
-import { createContext, useContext, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { type Socket, io } from "socket.io-client";
 
 interface SocketContextType {
 	socket: Socket | null;
@@ -60,4 +60,3 @@ export const useSocket = () => {
 	}
 	return context;
 };
-
