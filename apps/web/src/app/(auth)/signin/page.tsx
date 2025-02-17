@@ -38,19 +38,14 @@ export default function Page() {
 				password: data.password,
 				redirect: false,
 			});
-
-			if (res?.ok) {
-				toast.success("Logged in successfully");
-				router.push("/");
-			} else {
-				throw new Error(res?.error || "Failed to login");
+			if (res?.error === "CredentialsSignin") {
+				toast.error("Invalid email or password");
+				return;
 			}
+			toast.success("Logged in successfully");
+			router.push("/room");
 		} catch (error) {
-			if (error instanceof Error) {
-				toast.error(error.message);
-			} else {
-				toast.error("Failed to login with unknown error");
-			}
+			toast.error("Failed to login");
 		}
 	};
 

@@ -24,6 +24,7 @@ export class SocketManager {
 	}
 
 	private setupEventListeners(socket: Socket) {
+		console.log("Socket connected", socket.id);
 		socket.on(SocketEvents.JOIN_CONVERSATION, (data) =>
 			handleJoinConversation(socket, data),
 		);

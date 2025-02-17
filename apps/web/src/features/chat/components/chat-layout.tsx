@@ -33,10 +33,10 @@ export default function ChatLayout({
 	const { socket, isConnected } = useSocket();
 	const scrollAreaRef = useRef<HTMLDivElement>(null);
 	const { messages, setMessages } = useMessages();
-	const currentMessages = messages[roomInfo.roomId] || [];
+	const currentMessages = messages[roomInfo.id] || [];
 	const [isRoomJoined, setIsRoomJoined] = useState(false);
 	const { onlineUsers, setRoomOnlineUsers } = useRoomStore();
-	const roomOnlineUsers = onlineUsers[roomInfo.roomId] || [];
+	const roomOnlineUsers = onlineUsers[roomInfo.id] || [];
 	const scrollToBottom = useCallback(() => {
 		if (scrollAreaRef.current) {
 			const scrollContainer = scrollAreaRef.current.querySelector(
@@ -52,7 +52,7 @@ export default function ChatLayout({
 		const joinConversation = async () => {
 			try {
 				const result = await verifyRoomAccess({
-					roomId: roomInfo.roomId,
+					roomId: roomInfo.id,
 					userId: session.user.userId,
 				});
 
@@ -61,10 +61,10 @@ export default function ChatLayout({
 					return;
 				}
 				socket.emit(SocketEvents.JOIN_CONVERSATION, {
-					roomId: roomInfo.roomId,
+					roomId: roomInfo.id,
 				});
 				setIsRoomJoined(true);
-				setMessages(roomInfo.roomId, initialMessages);
+				setMessages(roomInfo.id, initialMessages);
 				setTimeout(scrollToBottom, 100);
 			} catch (error) {
 				toast.error("Failed to join conversation");
@@ -74,12 +74,12 @@ export default function ChatLayout({
 		return () => {
 			if (isRoomJoined) {
 				socket.emit(SocketEvents.LEAVE_CONVERSATION, {
-					roomId: roomInfo.roomId,
+					roomId: roomInfo.id,
 				});
 				setIsRoomJoined(false);
 			}
 		};
-	}, [socket, isConnected, roomInfo.roomId, session?.user]);
+	}, [socket, isConnected, roomInfo.id, session?.user]);
 	useEffect(() => {
 		scrollToBottom();
 	}, [currentMessages, scrollToBottom]);
@@ -89,7 +89,7 @@ export default function ChatLayout({
 			roomId,
 			users,
 		}: { roomId: string; users: UserPayload[] }) => {
-			if (roomId === roomInfo.roomId) {
+			if (roomId === roomInfo.id) {
 				setRoomOnlineUsers(roomId, users);
 			}
 		};
@@ -103,7 +103,7 @@ export default function ChatLayout({
 				handleConversationUsersOnline,
 			);
 		};
-	}, [socket, roomInfo.roomId, setRoomOnlineUsers]);
+	}, [socket, roomInfo.id, setRoomOnlineUsers]);
 	if (!isRoomJoined) {
 		return (
 			<div className="flex items-center justify-center h-full">
@@ -139,7 +139,7 @@ export default function ChatLayout({
 				<ScrollArea ref={scrollAreaRef} className="h-[calc(100vh-12rem)] p-4">
 					{currentMessages.map((message) => (
 						<ChatMessage
-							key={message.messageId}
+							key={message.id}
 							message={message}
 							isUser={session?.user.userId === message.userId}
 							userName={session?.user.username || "You"}
@@ -148,7 +148,7 @@ export default function ChatLayout({
 				</ScrollArea>
 			</CardContent>
 			<CardFooter className="border-t p-0">
-				<ChatInput roomId={roomInfo.roomId} />
+				<ChatInput roomId={roomInfo.id} />
 			</CardFooter>
 		</Card>
 	);

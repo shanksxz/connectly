@@ -35,7 +35,7 @@ export default async function Page({
 	return (
 		<ChatLayout
 			initialMessages={initialMessages.messages}
-			roomInfo={{ ...roomInfo.roomInfo, roomId }}
+			roomInfo={{ ...roomInfo.roomInfo, id: roomId }}
 		/>
 	);
 }

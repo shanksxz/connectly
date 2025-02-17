@@ -14,12 +14,7 @@ export async function handleSendMessage(
 		const inRoom = await db
 			.select()
 			.from(userRooms)
-			.where(
-				and(
-					eq(userRooms.userId, Number.parseInt(senderId)),
-					eq(userRooms.roomId, Number.parseInt(roomId)),
-				),
-			);
+			.where(and(eq(userRooms.userId, senderId), eq(userRooms.roomId, roomId)));
 
 		if (!inRoom.length) {
 			socket.emit(SocketEvents.ERROR, "Not a member of this room");
@@ -29,14 +24,14 @@ export async function handleSendMessage(
 		const [newMessage] = await db
 			.insert(messages)
 			.values({
-				roomId: Number.parseInt(roomId),
-				userId: Number.parseInt(senderId),
+				roomId,
+				userId: senderId,
 				content,
 			})
 			.returning();
 
 		const messageToSend = {
-			messageId: newMessage.messageId.toString(),
+			id: newMessage.id.toString(),
 			userId: newMessage.userId.toString(),
 			roomId: newMessage.roomId.toString(),
 			content: newMessage.content,

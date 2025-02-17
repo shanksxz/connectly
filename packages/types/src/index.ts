@@ -30,14 +30,14 @@ export const signUpSchema = z.object({
 });
 
 export interface User {
-    userId: string;
+    id: string;
     username: DBUser["username"];
     email: DBUser["email"];
     createdAt: DBUser["createdAt"];
 }
 
 export interface Room extends Omit<DBRoom, "roomId" | "createdBy"> {
-    roomId: string;
+    id: string;
     createdBy: string;
 }
 
@@ -49,7 +49,7 @@ export interface RoomInfo extends Room {
 }
 
 export interface Message extends Omit<DBMessage, "messageId" | "userId" | "roomId"> {
-    messageId: string;
+    id: string;
     userId: string;
     roomId: string;
     userName: string;

@@ -2,9 +2,10 @@ import { signInSchema } from "@/types";
 import { db, eq, users } from "@repo/database";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import NextAuth, { type DefaultSession } from "next-auth";
+import NextAuth, { type DefaultSession, type User } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { authConfig } from "./auth.config";
 
 const generateAccessToken = (user: {
 	userId: string;
@@ -26,8 +27,6 @@ declare module "next-auth" {
 		} & DefaultSession["user"];
 	}
 	interface User {
-		// id: string;
-		// email: string;
 		userId: string;
 		username: string;
 	}
@@ -42,13 +41,8 @@ declare module "next-auth/jwt" {
 	}
 }
 
-export const {
-	handlers: { GET, POST },
-	signIn,
-	signOut,
-	auth,
-} = NextAuth({
-	trustHost: true,
+export const { handlers, signIn, signOut, auth } = NextAuth({
+	...authConfig,
 	providers: [
 		CredentialsProvider({
 			id: "credentials",
@@ -57,54 +51,50 @@ export const {
 				email: { label: "Email", type: "email" },
 				password: { label: "Password", type: "password" },
 			},
-			async authorize(credentials, request): Promise<any | null> {
+			async authorize(credentials, request): Promise<User | null> {
 				if (!credentials?.email || !credentials?.password) {
-					console.error("Credentials are missing");
+					// Return null instead of throwing
 					return null;
 				}
 
 				try {
 					const { email, password } = signInSchema.parse(credentials);
-
 					const user = await db
 						.select()
 						.from(users)
 						.where(eq(users.email, email));
 
-					if (!user || user.length === 0) return null;
+					if (!user || user.length === 0) {
+						return null;
+					}
 
 					const isPasswordValid = await bcrypt.compare(
 						password,
-						user[0].password,
+						user[0].password as string,
 					);
 
 					if (!isPasswordValid) {
-						console.error("Password is invalid");
+						return null;
 					}
-					console.log(user[0]);
 
 					return {
-						userId: user[0].userId.toString(),
+						userId: user[0].id.toString(),
 						email: user[0].email,
 						username: user[0].username,
 					};
 				} catch (error) {
-					console.error("Error during authentication:", error);
+					console.error("Auth error:", error);
 					return null;
 				}
 			},
 		}),
 	],
-	pages: {
-		signIn: "/signin",
-	},
 	callbacks: {
 		async jwt({ token, user }) {
 			if (user) {
 				token.userId = user.userId;
 				token.email = user.email as string;
 				token.username = user.username;
-				//! might be tottaly wrong
 				token.accessToken = generateAccessToken({
 					userId: user.userId,
 					email: user.email as string,

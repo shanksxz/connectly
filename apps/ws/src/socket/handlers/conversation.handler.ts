@@ -14,8 +14,8 @@ export async function handleJoinConversation(
 			.from(userRooms)
 			.where(
 				and(
-					eq(userRooms.userId, Number.parseInt(socket.user.userId)),
-					eq(userRooms.roomId, Number.parseInt(roomId)),
+					eq(userRooms.userId, socket.user.userId),
+					eq(userRooms.roomId, roomId),
 				),
 			);
 
