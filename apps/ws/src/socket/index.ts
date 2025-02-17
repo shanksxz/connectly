@@ -26,7 +26,7 @@ const io = new Server(server, {
 	},
 });
 
-const roomUsersMap = new Map<string, Set<string>>();
+const activeConversations = new Map<string, Set<string>>();
 
 async function handleSendMessage(socket: Socket, message: { content: string; roomId: string }) {
 	try {
@@ -71,7 +71,7 @@ async function handleSendMessage(socket: Socket, message: { content: string; roo
 	}
 }
 
-async function handleJoinRoom(socket: Socket, { roomId }: { roomId: string }) {
+async function handleJoinConversation(socket: Socket, { roomId }: { roomId: string }) {
 	try {
 		const inRoom = await db
 			.select()
@@ -86,22 +86,17 @@ async function handleJoinRoom(socket: Socket, { roomId }: { roomId: string }) {
 			return;
 		}
 
-		const rooms = socket.rooms;
-		if (rooms.has(roomId)) {
-			return;
+		if (!activeConversations.has(roomId)) {
+			activeConversations.set(roomId, new Set());
 		}
-
-		if (!roomUsersMap.has(roomId)) {
-			roomUsersMap.set(roomId, new Set());
-		}
-		roomUsersMap.get(roomId)?.add(socket.user.userId);
+		activeConversations.get(roomId)?.add(socket.user.userId);
 
 		socket.join(roomId);
-		console.log(`User ${socket.user.username} joined room ${roomId}`);
+		console.log(`User ${socket.user.username} joined conversation ${roomId}`);
 		
-		io.to(roomId).emit(SocketEvents.ROOM_USERS_ONLINE, {
+		io.to(roomId).emit(SocketEvents.CONVERSATION_USERS_ONLINE, {
 			roomId,
-			users: Array.from(roomUsersMap.get(roomId) || []).map(userId => ({
+			users: Array.from(activeConversations.get(roomId) || []).map(userId => ({
 				userId,
 				userName: socket.user.username
 			}))
@@ -112,8 +107,8 @@ async function handleJoinRoom(socket: Socket, { roomId }: { roomId: string }) {
 			userName: socket.user.username
 		});
 	} catch (error) {
-		console.error('Error joining room:', error);
-		socket.emit(SocketEvents.ERROR, "Failed to join room");
+		console.error('Error joining conversation:', error);
+		socket.emit(SocketEvents.ERROR, "Failed to join conversation");
 	}
 }
 
@@ -133,33 +128,33 @@ io.use((socket, next) => {
 
 io.on("connection", (socket) => {
 	try {
-		socket.on(SocketEvents.JOIN_ROOM, (data) => handleJoinRoom(socket, data));
-		socket.on(SocketEvents.LEAVE_ROOM, ({ roomId }) => {
+		socket.on(SocketEvents.JOIN_CONVERSATION, (data) => handleJoinConversation(socket, data));
+		socket.on(SocketEvents.LEAVE_CONVERSATION, ({ roomId }) => {
 			socket.leave(roomId);
-			roomUsersMap.get(roomId)?.delete(socket.user.userId);
-			if (roomUsersMap.get(roomId)?.size === 0) {
-				roomUsersMap.delete(roomId);
+			activeConversations.get(roomId)?.delete(socket.user.userId);
+			if (activeConversations.get(roomId)?.size === 0) {
+				activeConversations.delete(roomId);
 			}
-			io.to(roomId).emit(SocketEvents.ROOM_USERS_ONLINE, {
+			io.to(roomId).emit(SocketEvents.CONVERSATION_USERS_ONLINE, {
 				roomId,
-				users: Array.from(roomUsersMap.get(roomId) || []).map(userId => ({
+				users: Array.from(activeConversations.get(roomId) || []).map(userId => ({
 					userId,
 					userName: socket.user.username
 				}))
 			});
-			console.log(`User ${socket.user.username} left room ${roomId}`);
+			console.log(`User ${socket.user.username} left conversation ${roomId}`);
 			socket.to(roomId).emit(SocketEvents.USER_LEFT, socket.user.userId);
 		});
 
 		socket.on(SocketEvents.SEND_MESSAGE, (message) => handleSendMessage(socket, message));
 		socket.on("disconnect", () => {
-			for (const [roomId, users] of roomUsersMap.entries()) {
+			for (const [roomId, users] of activeConversations.entries()) {
 				if (users.has(socket.user.userId)) {
 					users.delete(socket.user.userId);
 					if (users.size === 0) {
-						roomUsersMap.delete(roomId);
+						activeConversations.delete(roomId);
 					}
-					io.to(roomId).emit(SocketEvents.ROOM_USERS_ONLINE, {
+					io.to(roomId).emit(SocketEvents.CONVERSATION_USERS_ONLINE, {
 						roomId,
 						users: Array.from(users).map(userId => ({
 							userId,

@@ -71,14 +71,14 @@ export const messageSchema = z.object({
 export enum SocketEvents {
     ROOM_MESSAGES = "roomMessages",
     ONLINE_USERS = "onlineUsers",
-    JOIN_ROOM = "joinRoom",
-    LEAVE_ROOM = "leaveRoom",
+    JOIN_CONVERSATION = "joinConversation",
+    LEAVE_CONVERSATION = "leaveConversation",
     USER_JOINED = "userJoined",
     USER_LEFT = "userLeft",
     SEND_MESSAGE = "sendMessage",
     NEW_MESSAGE = "newMessage",
     ERROR = "error",
-    ROOM_USERS_ONLINE = "roomUsersOnline",
+    CONVERSATION_USERS_ONLINE = "conversationUsersOnline",
 }
 
 export interface MessagePayload {
@@ -96,12 +96,12 @@ export interface ServerToClientEvents {
     [SocketEvents.USER_JOINED]: (user: UserPayload) => void;
     [SocketEvents.USER_LEFT]: (userId: string) => void;
     [SocketEvents.ERROR]: (error: string) => void;
-    [SocketEvents.ROOM_USERS_ONLINE]: (data: { roomId: string; users: UserPayload[] }) => void;
+    [SocketEvents.CONVERSATION_USERS_ONLINE]: (data: { roomId: string; users: UserPayload[] }) => void;
 }
 
 export interface ClientToServerEvents {
-    [SocketEvents.JOIN_ROOM]: (data: { roomId: string }) => void;
-    [SocketEvents.LEAVE_ROOM]: (data: { roomId: string }) => void;
+    [SocketEvents.JOIN_CONVERSATION]: (data: { roomId: string }) => void;
+    [SocketEvents.LEAVE_CONVERSATION]: (data: { roomId: string }) => void;
     [SocketEvents.SEND_MESSAGE]: (message: MessagePayload) => void;
 }
 
