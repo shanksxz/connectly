@@ -2,7 +2,6 @@
     "extend": "@repo/typscript-config/base.json",
     "include": [
         "src/**/*.ts", 
-        "global.d.ts",
     ],
     "compilerOptions": {
         "outDir": "dist",
