@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { createRoom, joinRoom } from "@/actions/rooms";
 import { Button } from "@repo/ui/components/ui/button";
 import {
@@ -71,10 +73,10 @@ export function RoomOperations({ type }: { type: "Create" | "Join" }) {
 		<Dialog open={isOpen} onOpenChange={setIsOpen}>
 			<DialogTrigger asChild>
 				<Button
-					className="w-full"
+					className="w-full flex items-center gap-2"
 					variant={type === "Create" ? "default" : "secondary"}
 				>
-					<Plus className="mr-2 h-4 w-4" />
+					<Plus className="h-4 w-4" />
 					{type} Room
 				</Button>
 			</DialogTrigger>
