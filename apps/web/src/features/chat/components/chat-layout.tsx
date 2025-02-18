@@ -80,9 +80,11 @@ export default function ChatLayout({
 			}
 		};
 	}, [socket, isConnected, roomInfo.id, session?.user]);
+
 	useEffect(() => {
 		scrollToBottom();
 	}, [currentMessages, scrollToBottom]);
+
 	useEffect(() => {
 		if (!socket) return;
 		const handleConversationUsersOnline = ({
@@ -104,6 +106,7 @@ export default function ChatLayout({
 			);
 		};
 	}, [socket, roomInfo.id, setRoomOnlineUsers]);
+
 	if (!isRoomJoined) {
 		return (
 			<div className="flex items-center justify-center h-full">
@@ -125,9 +128,6 @@ export default function ChatLayout({
 							{roomInfo.roomName}
 						</CardTitle>
 					</div>
-					<span className="text-sm text-muted-foreground">
-						{currentMessages.length} messages
-					</span>
 					<div className="flex items-center gap-2">
 						<span className="text-sm text-muted-foreground">
 							{roomOnlineUsers.length} online

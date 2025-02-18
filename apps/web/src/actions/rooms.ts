@@ -98,6 +98,26 @@ export async function joinRoom({ roomId, userId }: foo) {
 	}
 }
 
+export async function deleteRoom(roomId: string, userId: string) {
+	try {
+		const room = await db.select().from(rooms).where(eq(rooms.id, roomId));
+
+		if (room.length === 0) {
+			return { status: 404, message: "Room not found" };
+		}
+
+		if (room[0].createdBy !== userId) {
+			return { status: 403, message: "Not authorized to delete this room" };
+		}
+
+		await db.delete(rooms).where(eq(rooms.id, roomId));
+
+		return { status: 200, message: "Room deleted successfully" };
+	} catch (error) {
+		return { status: 500, message: "Internal server error" };
+	}
+}
+
 export async function getMessages({ roomId, userId }: foo) {
 	try {
 		// is user in the room?
@@ -210,7 +230,7 @@ export async function getUsersAllRooms({ userId }: { userId: string }) {
 	try {
 		const foo = await db
 			.select({
-				roomId: rooms.id,
+				id: rooms.id,
 				roomName: rooms.roomName,
 				createdBy: rooms.createdBy,
 				createdAt: rooms.createdAt,

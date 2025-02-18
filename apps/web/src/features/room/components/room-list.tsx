@@ -1,47 +1,51 @@
+import { auth } from "@/server/auth";
 import type { RoomInfo } from "@repo/types";
-import { Eye, Users } from "lucide-react";
+import { Avatar } from "@repo/ui/components/ui/avatar";
+import { AvatarFallback } from "@repo/ui/components/ui/avatar";
+import { Users } from "lucide-react";
 import Link from "next/link";
+import { RoomDropdown } from "./room-dropdown";
 
 interface RoomWithUserCount extends RoomInfo {
 	userCount: number;
 }
 
-export function RoomList({
+export async function RoomList({
 	initialRooms,
-}: { initialRooms: RoomWithUserCount[] }) {
+}: {
+	initialRooms: RoomWithUserCount[];
+}) {
+	console.log(initialRooms);
+	const session = await auth();
 	return (
-		<div className="grid gap-4">
-			{initialRooms.length > 0 ? (
-				initialRooms.map((room) => (
-					<div
-						key={room.roomId}
-						className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50"
-					>
-						<div className="flex items-center gap-4">
-							<div className="rounded-full bg-primary/10 p-2">
-								<Users className="h-4 w-4 text-primary" />
-							</div>
-							<div>
-								<div className="font-medium">{room.roomName}</div>
-								<div className="text-sm text-muted-foreground">
-									{room.userCount} members
-								</div>
-							</div>
-						</div>
+		<div className="space-y-4">
+			{initialRooms.map((room) => (
+				<div key={room.id} className="p-4 rounded-lg border bg-card">
+					<div className="flex items-center justify-between">
 						<Link
-							href={`/room/${room.roomId}`}
-							className="flex items-center justify-center"
+							href={`/room/${room.id}`}
+							className="flex-1 flex items-center gap-3"
 						>
-							<Eye className="mr-2 h-4 w-4" />
-							View
+							<Avatar className="h-10 w-10 bg-primary/10">
+								<AvatarFallback className="text-primary">
+									{room.roomName.charAt(0).toUpperCase()}
+								</AvatarFallback>
+							</Avatar>
+							<div>
+								<h3 className="font-medium">{room.roomName}</h3>
+								<p className="text-sm text-muted-foreground flex items-center gap-1">
+									<Users className="h-3 w-3" />
+									{room.userCount || 0} members
+								</p>
+							</div>
 						</Link>
+						<RoomDropdown
+							isCreator={session?.user?.userId === room.createdBy}
+							roomId={room.id}
+						/>
 					</div>
-				))
-			) : (
-				<div className="text-center h-[100px] flex justify-center items-center text-muted-foreground">
-					You don't have any rooms yet
 				</div>
-			)}
+			))}
 		</div>
 	);
 }

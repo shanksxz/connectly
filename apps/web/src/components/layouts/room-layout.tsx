@@ -3,7 +3,6 @@ import SignOut from "@/features/auth/components/sign-out";
 import { RoomList } from "@/features/room/components/room-list";
 import { RoomOperations } from "@/features/room/components/room-operations";
 import { auth } from "@/server/auth";
-import { RoomInfo } from "@repo/types";
 
 export async function RoomLayout({
 	children,
@@ -18,7 +17,7 @@ export async function RoomLayout({
 		roomsList.status === 200 && roomsList.roomInfo
 			? roomsList.roomInfo.map((room) => ({
 					...room,
-					roomId: room.roomId.toString(),
+					roomId: room.id.toString(),
 					createdBy: room.createdBy.toString(),
 					users: [],
 				}))
